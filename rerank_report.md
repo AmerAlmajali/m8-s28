@@ -23,20 +23,12 @@ Stage breakdown for rerank pipeline:
 
 ## When Does Re-Ranking Pay Off?
 
-Re-ranking pays off when the gold document is ranked outside the top 5 by
-hybrid but within the top 50. In our 60-pair labeled set, this happened in
-2 clear cases: query 6 (gold at hybrid position 11) and query 10 (gold at
-hybrid position 8) — both recovered by the cross-encoder into the top 5,
-yielding recall = 1.0 where hybrid scored 0.0.
+Re-ranking pays off when the gold document is ranked outside the top 5 by the hybrid retriever but remains within the top 50 candidate set. In our 60-pair labeled evaluation set, this occurred in two clear cases: query 6 (gold document at hybrid rank 11) and query 10 (gold document at hybrid rank 8). In both cases, the cross-encoder successfully promoted the relevant document into the top 5, improving recall from 0.0 to 1.0 for those queries.
 
-However, re-ranking hurt in 8 queries where hybrid already had the gold doc
-at position 0 — the cross-encoder incorrectly demoted it. This happened
-because the corpus text fields are long and the cross-encoder scores the
-full untruncated text, introducing noise. The net result is a recall drop
-of 6.7 points (0.850 → 0.783) and an MRR drop of 5.7 points (0.681 →
-0.624). Re-ranking is only worth it when hybrid recall@50 significantly
-exceeds hybrid recall@5 — meaning many gold docs sit between position 5
-and 50.
+However, re-ranking hurt performance in eight queries where the hybrid retriever had already ranked the gold document at position 0. The cross-encoder assigned lower relevance scores to those documents and demoted them below higher-ranked alternatives, causing some relevant documents to fall outside the top-5 cutoff. As a result, overall Recall@5 decreased by 6.7 percentage points (0.850 → 0.783), while MRR decreased by 5.7 percentage points (0.681 → 0.624).
+
+These results suggest that the hybrid baseline was already producing a strong ranking on this dataset, leaving limited room for improvement through re-ranking. The cross-encoder was able to recover a small number of missed relevant documents, but these gains were outweighed by cases where it disrupted an already-correct ranking. Re-ranking is therefore most beneficial when hybrid Recall@50 significantly exceeds Recall@5, indicating that many relevant documents are retrieved but not ranked highly enough. In this dataset, that condition was not common, so the additional latency cost did not translate into improved retrieval quality.
+
 
 ## Latency Overhead
 
